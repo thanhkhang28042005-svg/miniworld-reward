@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mini World Reward</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4">
+
+<div class="w-full max-w-md bg-slate-800 rounded-3xl shadow-2xl p-6">
+
+  <div id="loginPage">
+    <h1 class="text-3xl font-bold text-center mb-6">Mini World Reward</h1>
+
+    <input id="username" type="text" placeholder="Tên tài khoản"
+      class="w-full p-3 rounded-xl bg-slate-700 outline-none mb-3" />
+
+    <input id="password" type="password" placeholder="Mật khẩu"
+      class="w-full p-3 rounded-xl bg-slate-700 outline-none mb-5" />
+
+    <button onclick="login()"
+      class="w-full bg-blue-500 hover:bg-blue-600 transition rounded-xl p-3 font-bold">
+      Đăng nhập
+    </button>
+  </div>
+
+  <div id="appPage" class="hidden">
+
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-xl font-bold">Xin chào</h2>
+        <p id="playerName" class="text-slate-300"></p>
+      </div>
+
+      <button onclick="logout()"
+        class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-xl">
+        Thoát
+      </button>
+    </div>
+
+    <div class="bg-slate-700 rounded-2xl p-5 text-center mb-5">
+      <p class="text-slate-300 mb-2">Số xu hiện tại</p>
+      <h1 id="coinText" class="text-5xl font-bold text-yellow-400">0</h1>
+    </div>
+
+    <div class="bg-slate-700 rounded-2xl p-4 mb-5">
+      <h3 class="font-bold mb-3">Xem quảng cáo nhận xu</h3>
+
+      <div id="adBox"
+        class="bg-black rounded-xl h-40 flex items-center justify-center text-slate-400 mb-4 overflow-hidden relative">
+        Quảng cáo sẽ hiện ở đây
+      </div>
+
+      <button id="watchBtn" onclick="watchAd()"
+        class="w-full bg-green-500 hover:bg-green-600 transition rounded-xl p-3 font-bold">
+        Xem quảng cáo (+1 xu)
+      </button>
+    </div>
+
+    <div class="bg-slate-700 rounded-2xl p-4">
+      <h3 class="font-bold mb-3">Rút xu</h3>
+
+      <input id="gameId" type="text" placeholder="ID Mini World"
+        class="w-full p-3 rounded-xl bg-slate-600 outline-none mb-3" />
+
+      <input id="gameName" type="text" placeholder="Tên nhân vật"
+        class="w-full p-3 rounded-xl bg-slate-600 outline-none mb-3" />
+
+      <input id="withdrawAmount" type="number" placeholder="Số xu muốn rút"
+        class="w-full p-3 rounded-xl bg-slate-600 outline-none mb-4" />
+
+      <button onclick="withdrawCoins()"
+        class="w-full bg-yellow-500 hover:bg-yellow-600 transition rounded-xl p-3 font-bold text-black">
+        Gửi yêu cầu rút xu
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let currentUser = null
+  let coins = 0
+  let cooldown = false
+
+  function saveData() {
+    localStorage.setItem('mw_user', currentUser)
+    localStorage.setItem('mw_coins_' + currentUser, coins)
+  }
+
+  function login() {
+    const username = document.getElementById('username').value
+    const password = document.getElementById('password').value
+
+    if (!username || !password) {
+      alert('Vui lòng nhập đầy đủ')
+      return
+    }
+
+    currentUser = username
+
+    coins = Number(localStorage.getItem('mw_coins_' + currentUser)) || 0
+
+    document.getElementById('loginPage').classList.add('hidden')
+    document.getElementById('appPage').classList.remove('hidden')
+
+    document.getElementById('playerName').innerText = currentUser
+
+    updateCoins()
+    saveData()
+  }
+
+  function logout() {
+    localStorage.removeItem('mw_user')
+    location.reload()
+  }
+
+  function updateCoins() {
+    document.getElementById('coinText').innerText = coins
+  }
+
+  function watchAd() {
+    if (cooldown) {
+      alert('Vui lòng đợi quảng cáo kết thúc')
+      return
+    }
+
+    cooldown = true
+
+    const adBox = document.getElementById('adBox')
+    const btn = document.getElementById('watchBtn')
+
+    let time = 10
+
+    btn.disabled = true
+    btn.innerText = 'Đang xem quảng cáo...'
+
+    adBox.innerHTML = `
+      <div class="text-center">
+        <h2 class="text-2xl font-bold text-white mb-2">QUẢNG CÁO</h2>
+        <p class="text-slate-300">Vui lòng xem đủ thời gian</p>
+        <h1 id="timer" class="text-5xl font-bold text-green-400 mt-3">10</h1>
+      </div>
+    `
+
+    const interval = setInterval(() => {
+      time--
+      document.getElementById('timer').innerText = time
+
+      if (time <= 0) {
+        clearInterval(interval)
+
+        coins += 1
+        updateCoins()
+        saveData()
+
+        adBox.innerHTML = 'Đã nhận 1 xu thành công'
+
+        btn.disabled = false
+        btn.innerText = 'Xem quảng cáo (+1 xu)'
+
+        cooldown = false
+      }
+    }, 1000)
+  }
+
+  function withdrawCoins() {
+    const id = document.getElementById('gameId').value
+    const name = document.getElementById('gameName').value
+    const amount = Number(document.getElementById('withdrawAmount').value)
+
+    if (!id || !name || !amount) {
+      alert('Nhập đầy đủ thông tin')
+      return
+    }
+
+    if (amount > coins) {
+      alert('Không đủ xu')
+      return
+    }
+
+    coins -= amount
+
+    updateCoins()
+    saveData()
+
+    const requests = JSON.parse(localStorage.getItem('withdraw_requests') || '[]')
+
+    requests.push({
+      user: currentUser,
+      miniworld_id: id,
+      player_name: name,
+      amount: amount,
+      status: 'pending',
+      time: new Date().toLocaleString()
+    })
+
+    localStorage.setItem('withdraw_requests', JSON.stringify(requests))
+
+    alert('Đã gửi yêu cầu rút xu')
+  }
+
+  window.onload = () => {
+    const savedUser = localStorage.getItem('mw_user')
+
+    if (savedUser) {
+      currentUser = savedUser
+      coins = Number(localStorage.getItem('mw_coins_' + currentUser)) || 0
+
+      document.getElementById('loginPage').classList.add('hidden')
+      document.getElementById('appPage').classList.remove('hidden')
+
+      document.getElementById('playerName').innerText = currentUser
+
+      updateCoins()
+    }
+  }
+</script>
+
+</body>
+</html>
