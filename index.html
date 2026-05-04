@@ -1,105 +1,146 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MiniWorld Reward</title>
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-
 <style>
-body{background:#0f172a;color:white;font-family:sans-serif;text-align:center}
-.box{background:#1e293b;padding:20px;margin:20px;border-radius:10px}
-button{padding:10px;border:none;border-radius:8px;margin:5px}
+body{
+    margin:0;
+    font-family: Arial;
+    background: url("https://i.imgur.com/8Km9tLL.jpg") no-repeat center/cover;
+    color:white;
+}
+
+/* overlay */
+.overlay{
+    background: rgba(0,0,0,0.6);
+    min-height:100vh;
+    padding:20px;
+}
+
+/* card */
+.box{
+    background: rgba(30,41,59,0.9);
+    padding:20px;
+    border-radius:15px;
+    margin:15px auto;
+    max-width:400px;
+    box-shadow:0 0 20px rgba(0,0,0,0.5);
+}
+
+/* title */
+h1{
+    text-align:center;
+    color:#22c55e;
+}
+
+/* input */
+input{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    border-radius:10px;
+    border:none;
+}
+
+/* button */
+button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    margin-top:10px;
+    font-weight:bold;
+}
+
+/* colors */
+.green{background:#22c55e;}
+.yellow{background:#facc15;color:black;}
+.red{background:#ef4444;}
+.blue{background:#3b82f6;}
 </style>
+
 </head>
 
 <body>
+<div class="overlay">
 
-<div id="login">
-<h2>Đăng nhập</h2>
-<input id="email" placeholder="Email"><br>
-<input id="pass" type="password" placeholder="Mật khẩu"><br>
-<button onclick="login()">Đăng nhập</button>
-<button onclick="register()">Đăng ký</button>
+<h1>🌍 Mini World Reward</h1>
+
+<!-- LOGIN -->
+<div id="login" class="box">
+<h3>Đăng nhập</h3>
+<input id="username" placeholder="Tên người chơi">
+<input id="password" type="password" placeholder="Mật khẩu">
+<button class="blue" onclick="login()">Đăng nhập</button>
 </div>
 
+<!-- APP -->
 <div id="app" style="display:none">
-<h2 id="user"></h2>
 
 <div class="box">
-<h1 id="coin">0</h1>
-Đậu Mini World
+<h3 id="user"></h3>
+<button class="red" onclick="logout()">Thoát</button>
 </div>
 
-<button onclick="watchAd()">Xem QC +20</button>
+<div class="box" style="text-align:center">
+<h1 id="coin">0</h1>
+<p>Đậu Mini World</p>
+</div>
 
 <div class="box">
-<input id="gameid" placeholder="ID game"><br>
-<input id="name" placeholder="Tên"><br>
-<input id="amount" placeholder="Số đậu"><br>
-<button onclick="withdraw()">Rút đậu</button>
+<button class="green" onclick="watchAd()">🎬 Xem QC +20 đậu</button>
+</div>
+
+<div class="box">
+<h3>Rút đậu</h3>
+<input id="gameid" placeholder="ID game">
+<input id="name" placeholder="Tên">
+<input id="amount" placeholder="Số đậu">
+<button class="yellow" onclick="withdraw()">Rút đậu</button>
+</div>
+
+<div class="box">
+<button onclick="admin()">👑 Admin</button>
+</div>
+
 </div>
 
 </div>
 
 <script>
-// DÁN CONFIG FIREBASE CỦA BẠN VÀO ĐÂY
-const firebaseConfig = {
-apiKey: "YOUR_KEY",
-authDomain: "YOUR_DOMAIN",
-projectId: "YOUR_ID"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-function register(){
-auth.createUserWithEmailAndPassword(email.value, pass.value);
-}
+let coins = 0;
 
 function login(){
-auth.signInWithEmailAndPassword(email.value, pass.value);
+    let user = username.value;
+    localStorage.setItem("user", user);
+
+    login.style.display="none";
+    app.style.display="block";
+    document.getElementById("user").innerText = "👤 " + user;
 }
 
-auth.onAuthStateChanged(user=>{
-if(user){
-login.style.display="none";
-app.style.display="block";
-document.getElementById("user").innerText=user.email;
-
-loadCoin();
-}
-});
-
-function loadCoin(){
-db.collection("users").doc(auth.currentUser.uid).get().then(d=>{
-if(d.exists){
-coin.innerText=d.data().coin;
-}else{
-db.collection("users").doc(auth.currentUser.uid).set({coin:0});
-}
-});
+function logout(){
+    location.reload();
 }
 
 function watchAd(){
-let c = parseInt(coin.innerText)+20;
-coin.innerText=c;
-db.collection("users").doc(auth.currentUser.uid).update({coin:c});
+    alert("Bạn đã xem quảng cáo!");
+    coins += 20;
+    document.getElementById("coin").innerText = coins;
 }
 
 function withdraw(){
-db.collection("withdraw").add({
-uid:auth.currentUser.uid,
-id:gameid.value,
-name:name.value,
-amount:amount.value
-});
-alert("Đã gửi yêu cầu");
+    alert("Yêu cầu rút đã gửi!");
+}
+
+function admin(){
+    alert("Trang admin (bản demo)");
 }
 </script>
 
 </body>
-</html>aler
+</html>
+
