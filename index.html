@@ -3,144 +3,160 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MiniWorld Reward</title>
+<title>Mini World Reward</title>
 
 <style>
-body{
-    margin:0;
+body {
+    margin: 0;
     font-family: Arial;
-    background: url("https://i.imgur.com/8Km9tLL.jpg") no-repeat center/cover;
-    color:white;
+    background: url("https://i.imgur.com/3ZQ3Z6G.jpg") no-repeat center;
+    background-size: cover;
+    color: white;
 }
 
-/* overlay */
-.overlay{
+/* lớp nền tối */
+.overlay {
     background: rgba(0,0,0,0.6);
-    min-height:100vh;
-    padding:20px;
+    min-height: 100vh;
+    padding: 20px;
 }
 
-/* card */
-.box{
-    background: rgba(30,41,59,0.9);
-    padding:20px;
-    border-radius:15px;
-    margin:15px auto;
-    max-width:400px;
-    box-shadow:0 0 20px rgba(0,0,0,0.5);
+.box {
+    max-width: 400px;
+    margin: auto;
+    background: rgba(20,30,50,0.9);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px #000;
 }
 
-/* title */
-h1{
-    text-align:center;
-    color:#22c55e;
+h1 {
+    text-align: center;
 }
 
-/* input */
-input{
-    width:100%;
-    padding:10px;
-    margin:8px 0;
-    border-radius:10px;
-    border:none;
+/* avatar */
+.avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: block;
+    margin: auto;
+    border: 3px solid #00ffcc;
+}
+
+/* số xu */
+.coin {
+    text-align: center;
+    font-size: 40px;
+    margin: 20px 0;
 }
 
 /* button */
-button{
-    width:100%;
-    padding:12px;
-    border:none;
-    border-radius:10px;
-    margin-top:10px;
-    font-weight:bold;
+.btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    margin-top: 10px;
+    font-size: 16px;
+    cursor: pointer;
 }
 
-/* colors */
-.green{background:#22c55e;}
-.yellow{background:#facc15;color:black;}
-.red{background:#ef4444;}
-.blue{background:#3b82f6;}
-</style>
+.green {
+    background: #2ecc71;
+}
 
+.yellow {
+    background: #f1c40f;
+}
+
+.red {
+    background: #e74c3c;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    border-radius: 8px;
+    border: none;
+}
+
+/* hiệu ứng */
+.btn:hover {
+    opacity: 0.8;
+}
+</style>
 </head>
 
 <body>
+
 <div class="overlay">
-
-<h1>🌍 Mini World Reward</h1>
-
-<!-- LOGIN -->
-<div id="login" class="box">
-<h3>Đăng nhập</h3>
-<input id="username" placeholder="Tên người chơi">
-<input id="password" type="password" placeholder="Mật khẩu">
-<button class="blue" onclick="login()">Đăng nhập</button>
-</div>
-
-<!-- APP -->
-<div id="app" style="display:none">
-
 <div class="box">
-<h3 id="user"></h3>
-<button class="red" onclick="logout()">Thoát</button>
-</div>
 
-<div class="box" style="text-align:center">
-<h1 id="coin">0</h1>
-<p>Đậu Mini World</p>
-</div>
+<img class="avatar" src="https://i.imgur.com/J6l19aF.png">
 
-<div class="box">
-<button class="green" onclick="watchAd()">🎬 Xem QC +20 đậu</button>
-</div>
+<h1>Mini World Reward</h1>
 
-<div class="box">
+<h3 id="user">Khang</h3>
+
+<button class="btn red" onclick="logout()">Thoát</button>
+
+<div class="coin" id="coin">0</div>
+<p style="text-align:center">Đậu Mini World</p>
+
+<button class="btn green" onclick="watchAd()">Xem QC +20 đậu</button>
+
 <h3>Rút đậu</h3>
-<input id="gameid" placeholder="ID game">
-<input id="name" placeholder="Tên">
+
+<input placeholder="ID game">
+<input placeholder="Tên">
 <input id="amount" placeholder="Số đậu">
-<button class="yellow" onclick="withdraw()">Rút đậu</button>
-</div>
 
-<div class="box">
-<button onclick="admin()">👑 Admin</button>
-</div>
+<button class="btn yellow" onclick="withdraw()">Rút đậu</button>
+
+<button class="btn" onclick="admin()">Admin</button>
 
 </div>
-
 </div>
 
 <script>
-let coins = 0;
-
-function login(){
-    let user = username.value;
-    localStorage.setItem("user", user);
-
-    login.style.display="none";
-    app.style.display="block";
-    document.getElementById("user").innerText = "👤 " + user;
-}
-
-function logout(){
-    location.reload();
-}
+let coin = localStorage.getItem("coin") || 0;
+document.getElementById("coin").innerText = coin;
 
 function watchAd(){
-    alert("Bạn đã xem quảng cáo!");
-    coins += 20;
-    document.getElementById("coin").innerText = coins;
+    alert("Đang xem quảng cáo...");
+    setTimeout(()=>{
+        coin = parseInt(coin) + 20;
+        localStorage.setItem("coin", coin);
+        document.getElementById("coin").innerText = coin;
+        alert("Nhận +20 đậu!");
+    },2000);
 }
 
 function withdraw(){
-    alert("Yêu cầu rút đã gửi!");
+    let amount = document.getElementById("amount").value;
+
+    if(amount > coin){
+        alert("Không đủ đậu!");
+        return;
+    }
+
+    coin -= amount;
+    localStorage.setItem("coin", coin);
+    document.getElementById("coin").innerText = coin;
+
+    alert("Đã gửi yêu cầu rút!");
+}
+
+function logout(){
+    alert("Đã thoát!");
 }
 
 function admin(){
-    alert("Trang admin (bản demo)");
+    alert("Trang admin (bạn sẽ làm sau)");
 }
 </script>
 
 </body>
 </html>
-
