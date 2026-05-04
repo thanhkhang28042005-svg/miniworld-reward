@@ -1,134 +1,105 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MiniWorld Reward Pro</title>
+<title>MiniWorld Reward</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+
 <style>
-body{font-family:Arial;background:#0f172a;color:#fff;margin:0}
-.container{max-width:400px;margin:auto;padding:20px}
-.card{background:#1e293b;padding:15px;border-radius:15px;margin-bottom:10px}
-input,button{width:100%;padding:10px;margin:5px 0;border:none;border-radius:8px}
-button{font-weight:bold;cursor:pointer}
-.green{background:#22c55e}
-.blue{background:#3b82f6}
-.yellow{background:#facc15;color:#000}
-.red{background:#ef4444}
-.center{text-align:center}
+body{background:#0f172a;color:white;font-family:sans-serif;text-align:center}
+.box{background:#1e293b;padding:20px;margin:20px;border-radius:10px}
+button{padding:10px;border:none;border-radius:8px;margin:5px}
 </style>
 </head>
 
 <body>
-<div class="container">
 
-<div id="login" class="card">
-<h2 class="center">MiniWorld Reward</h2>
-<input id="user" placeholder="Tài khoản">
-<button class="blue" onclick="login()">Đăng nhập</button>
+<div id="login">
+<h2>Đăng nhập</h2>
+<input id="email" placeholder="Email"><br>
+<input id="pass" type="password" placeholder="Mật khẩu"><br>
+<button onclick="login()">Đăng nhập</button>
+<button onclick="register()">Đăng ký</button>
 </div>
 
 <div id="app" style="display:none">
-<div class="card">
-<b id="name"></b>
-<button class="red" onclick="logout()">Thoát</button>
-</div>
+<h2 id="user"></h2>
 
-<div class="card center">
+<div class="box">
 <h1 id="coin">0</h1>
-<p>Đậu Mini World</p>
+Đậu Mini World
 </div>
 
-<div class="card">
-<button class="green" onclick="watch()">Xem QC +20 đậu</button>
-</div>
+<button onclick="watchAd()">Xem QC +20</button>
 
-<div class="card">
-<input id="id" placeholder="ID game">
-<input id="nick" placeholder="Tên">
-<input id="amount" type="number" placeholder="Số đậu">
-<button class="yellow" onclick="withdraw()">Rút đậu</button>
+<div class="box">
+<input id="gameid" placeholder="ID game"><br>
+<input id="name" placeholder="Tên"><br>
+<input id="amount" placeholder="Số đậu"><br>
+<button onclick="withdraw()">Rút đậu</button>
 </div>
-
-<button onclick="openAdmin()">Admin</button>
-</div>
-
-<div id="admin" style="display:none" class="container"></div>
 
 </div>
 
 <script>
-let user="",coins=0,last=0
+// DÁN CONFIG FIREBASE CỦA BẠN VÀO ĐÂY
+const firebaseConfig = {
+apiKey: "YOUR_KEY",
+authDomain: "YOUR_DOMAIN",
+projectId: "YOUR_ID"
+};
 
-function save(){
-localStorage.setItem("user",user)
-localStorage.setItem("coin_"+user,coins)
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+function register(){
+auth.createUserWithEmailAndPassword(email.value, pass.value);
 }
 
 function login(){
-user=document.getElementById("user").value
-coins=Number(localStorage.getItem("coin_"+user))||0
-document.getElementById("login").style.display="none"
-document.getElementById("app").style.display="block"
-document.getElementById("name").innerText=user
-update()
+auth.signInWithEmailAndPassword(email.value, pass.value);
 }
 
-function logout(){localStorage.clear();location.reload()}
+auth.onAuthStateChanged(user=>{
+if(user){
+login.style.display="none";
+app.style.display="block";
+document.getElementById("user").innerText=user.email;
 
-function update(){document.getElementById("coin").innerText=coins}
+loadCoin();
+}
+});
 
-function watch(){
-let now=Date.now()
-if(now-last<10000) return alert("Đợi 10s")
-last=now
-coins+=20
-save()
-update()
-alert("+20 đậu")
+function loadCoin(){
+db.collection("users").doc(auth.currentUser.uid).get().then(d=>{
+if(d.exists){
+coin.innerText=d.data().coin;
+}else{
+db.collection("users").doc(auth.currentUser.uid).set({coin:0});
+}
+});
+}
+
+function watchAd(){
+let c = parseInt(coin.innerText)+20;
+coin.innerText=c;
+db.collection("users").doc(auth.currentUser.uid).update({coin:c});
 }
 
 function withdraw(){
-let id=document.getElementById("id").value
-let nick=document.getElementById("nick").value
-let amount=Number(document.getElementById("amount").value)
-if(!id||!nick||!amount) return alert("Nhập đủ")
-if(amount>coins) return alert("Không đủ")
-coins-=amount
-save()
-update()
-
-let list=JSON.parse(localStorage.getItem("req")||"[]")
-list.push({user,id,nick,amount,status:"Chờ"})
-localStorage.setItem("req",JSON.stringify(list))
-alert("Đã gửi")
-}
-
-function openAdmin(){
-document.getElementById("app").style.display="none"
-document.getElementById("admin").style.display="block"
-load()
-}
-
-function load(){
-let list=JSON.parse(localStorage.getItem("req")||"[]")
-let html="<h2>Admin</h2>"
-list.forEach((r,i)=>{
-html+=`<div class="card">
-${r.user} - ${r.amount} đậu<br>
-${r.nick} (${r.id})<br>
-${r.status}<br>
-<button onclick="done(${i})">Đã gửi</button>
-</div>`
-})
-document.getElementById("admin").innerHTML=html
-}
-
-function done(i){
-let list=JSON.parse(localStorage.getItem("req")||"[]")
-list[i].status="Đã gửi"
-localStorage.setItem("req",JSON.stringify(list))
-load()
+db.collection("withdraw").add({
+uid:auth.currentUser.uid,
+id:gameid.value,
+name:name.value,
+amount:amount.value
+});
+alert("Đã gửi yêu cầu");
 }
 </script>
+
 </body>
-</html>
+</html>aler
